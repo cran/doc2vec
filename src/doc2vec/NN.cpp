@@ -10,9 +10,11 @@ NN::NN(long long vocab_size, long long corpus_size, long long dim,
 {
   long long a, b;
   unsigned long long next_random = 1;
+  m_syn0 = NULL;
   //a = posix_memalign((void **)&m_syn0, 128, (long long)m_vocab_size * m_dim * sizeof(real));
   m_syn0 = (float *)_aligned_malloc((long long)m_vocab_size * m_dim * sizeof(real), 128);
   if (m_syn0 == NULL) {Rcpp::stop("Memory allocation failed\n"); }
+  m_dsyn0 = NULL;
   //a = posix_memalign((void **)&m_dsyn0, 128, (long long)m_corpus_size * m_dim * sizeof(real));
   m_dsyn0 = (float *)_aligned_malloc((long long)m_corpus_size * m_dim * sizeof(real), 128);
   if (m_dsyn0 == NULL) {Rcpp::stop("Memory allocation failed\n"); }
@@ -24,7 +26,8 @@ NN::NN(long long vocab_size, long long corpus_size, long long dim,
     next_random = next_random * (unsigned long long)25214903917 + 11;
     m_dsyn0[a * m_dim + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) / m_dim;
   }
-
+  m_syn1 = NULL;
+  m_syn1neg = NULL;
   if(m_hs) {
     //a = posix_memalign((void **)&m_syn1, 128, (long long)m_vocab_size * m_dim * sizeof(real));
     m_syn1 = (float *)_aligned_malloc((long long)m_vocab_size * m_dim * sizeof(real), 128);
@@ -81,6 +84,8 @@ void NN::load(FILE * fin)
   if (m_dsyn0 == NULL) {Rcpp::stop("Memory allocation failed\n"); }
   errnr = fread(m_dsyn0, sizeof(real), m_corpus_size * m_dim, fin);
 
+  m_syn1 = NULL;
+  m_syn1neg = NULL;
   if(m_hs) {
     //errnr = posix_memalign((void **)&m_syn1, 128, (long long)m_vocab_size * m_dim * sizeof(real));
     m_syn1 = (float *)_aligned_malloc((long long)m_vocab_size * m_dim * sizeof(real), 128);

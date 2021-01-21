@@ -13,6 +13,7 @@ TrainModelThread::TrainModelThread(long long id, Doc2Vec * doc2vec,
   m_doc2vec = doc2vec;
   m_corpus = sub_corpus;
   m_infer = infer;
+  m_doc_vector = NULL;
 
   m_start = clock();
   m_next_random = id;
@@ -27,8 +28,9 @@ TrainModelThread::TrainModelThread(long long id, Doc2Vec * doc2vec,
 
 TrainModelThread::~TrainModelThread()
 {
-  if(m_neu1) free(m_neu1);
-  if(m_neu1e) free(m_neu1e);
+  free(m_neu1);
+  free(m_neu1e);
+  delete m_corpus;
 }
 
 void TrainModelThread::train()

@@ -1,7 +1,7 @@
 Package: doc2vec
 Type: Package
 Title: Distributed Representations of Sentences and Documents
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person('Jan', 'Wijffels', role = c('aut', 'cre', 'cph'), email = 'jwijffels@bnosac.be', comment = "R wrapper"), 
     person('BNOSAC', role = 'cph', comment = "R wrapper"),
@@ -18,11 +18,11 @@ RoxygenNote: 7.1.1
 Depends: R (>= 2.10)
 Imports: Rcpp (>= 0.11.5), stats
 LinkingTo: Rcpp
-Suggests: tokenizers.bpe, udpipe (>= 0.8.4)
+Suggests: tokenizers.bpe
 NeedsCompilation: yes
-Packaged: 2020-12-08 15:54:08 UTC; Jan
+Packaged: 2021-01-21 08:42:35 UTC; jwijffels
 Author: Jan Wijffels [aut, cre, cph] (R wrapper),
   BNOSAC [cph] (R wrapper),
   hiyijian [ctb, cph] (Code in src/doc2vec)
 Repository: CRAN
-Date/Publication: 2020-12-10 09:00:08 UTC
+Date/Publication: 2021-01-21 17:20:09 UTC
