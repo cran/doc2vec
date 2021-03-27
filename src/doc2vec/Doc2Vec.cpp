@@ -32,7 +32,7 @@ Doc2Vec::~Doc2Vec()
   if(m_brown_corpus) delete m_brown_corpus;
   if(m_expTable) free(m_expTable);
   if(m_negtive_sample_table) free(m_negtive_sample_table);
-  for(size_t i =  0; i < m_trainModelThreads.size(); i++) delete m_trainModelThreads[i];
+  //for(size_t i =  0; i < m_trainModelThreads.size(); i++) delete m_trainModelThreads[i];
 }
 
 void Doc2Vec::initExpTable()
@@ -68,7 +68,7 @@ void Doc2Vec::train(const char * train_file,
   int dim, int cbow, int hs, int negtive,
   int iter, int window,
   real alpha, real sample,
-  int min_count, int threads, int trace)
+  int min_count, int threads, int trace, Rcpp::NumericMatrix embeddings)
 {
   //printf("Starting training using file %s\n", train_file);
   m_cbow = cbow;
@@ -82,7 +82,23 @@ void Doc2Vec::train(const char * train_file,
 
   m_word_vocab = new Vocabulary(train_file, min_count);
   m_doc_vocab = new Vocabulary(train_file, 1, true);
-  m_nn = new NN(m_word_vocab->m_vocab_size, m_doc_vocab->m_vocab_size, dim, hs, negtive);
+  
+  // Extract positions in predefined embedding matrix of the words in the m_word_vocab
+  Rcpp::IntegerVector vocab_to_embedddings(m_word_vocab->m_vocab_size, Rcpp::IntegerVector::get_na());
+  Rcpp::CharacterVector terminology_doc2vec(m_word_vocab->m_vocab_size);
+  if(embeddings.nrow() > 0){
+    for (int i = 0; i < m_word_vocab->m_vocab_size; i++){
+      std::string input(m_word_vocab->m_vocab[i].word);
+      terminology_doc2vec[i] = input;
+    }
+    Rcpp::List dimnames = embeddings.attr("dimnames");
+    Rcpp::CharacterVector terminology_embeddings = dimnames[0];
+    if(terminology_embeddings.length() > 0){
+      vocab_to_embedddings = Rcpp::match(terminology_doc2vec, terminology_embeddings) - 1;
+    }
+  }
+  
+  m_nn = new NN(m_word_vocab->m_vocab_size, m_doc_vocab->m_vocab_size, dim, hs, negtive, embeddings, vocab_to_embedddings);
   if(m_negtive > 0) initNegTable();
 
   m_brown_corpus = new TaggedBrownCorpus(train_file);
@@ -101,6 +117,10 @@ void Doc2Vec::train(const char * train_file,
     std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     Rcpp::Rcout << Rcpp::as<Rcpp::Datetime>(Rcpp::wrap(t)) << " Closed all threads, normalising" << "\n";     
   }
+  for(size_t i =  0; i < m_trainModelThreads.size(); i++) m_trainModelThreads[i]->m_corpus->close();
+  for(size_t i =  0; i < m_trainModelThreads.size(); i++) delete m_trainModelThreads[i];
+  m_brown_corpus->close();
+
   m_nn->norm();
   //m_wmd = new WMD(this);
   //m_wmd->train();
